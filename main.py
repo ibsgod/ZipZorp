@@ -1,12 +1,17 @@
+import random
 import sys
 
 from pygame.rect import Rect
 
+from Enemy import Enemy
 from Player import Player
 import os
 import pygame
 
-class Main:
+from Stats import Stats
+
+
+class Game:
     pygame.mixer.init()
     pygame.init()
     os.environ['SDL_VIDEO_CENTERED'] = '1'
@@ -14,12 +19,14 @@ class Main:
     height = 650
     screen = pygame.display.set_mode((width, height))
     screen.fill((244, 0, 0))
-    p = Player()
+    stats = Stats()
+    p = Player(stats)
     pause = False
     mouseOver = False
     mouse = False
     mousePos = None
     contRect = None
+    start = pygame.time.get_ticks()
     while True:
         screen.fill((0, 0, 0))
         mousePos = pygame.mouse.get_pos()
@@ -36,9 +43,32 @@ class Main:
             p.move()
             for i in p.getEggs():
                 i.tick()
+            for i in stats.enemies:
+                i.tick()
             if mouse:
                 p.mouseSpin(mousePos)
+        if pygame.time.get_ticks() - start > 1000:
+            r = random.randint(0, 3)
+            print (r)
+            rx = None
+            ry = None
+            if r == 0:
+                rx = -70
+                ry = random.randint(0, 650)
+            if r == 1:
+                rx = random.randint(0, 1200)
+                ry = -70
+            if r == 2:
+                rx = 1270
+                ry = random.randint(0, 650)
+            if r == 3:
+                rx = random.randint(0, 1200)
+                ry = 720
+            stats.enemies.append(Enemy(rx, ry, p))
+            start = pygame.time.get_ticks()
         for i in p.getEggs():
+            i.draw(screen)
+        for i in stats.enemies:
             i.draw(screen)
         p.draw(screen)
         if pause:

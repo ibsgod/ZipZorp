@@ -5,7 +5,8 @@ import pygame
 from Egg import Egg
 
 class Player:
-    def __init__(self):
+    def __init__(self, stats):
+        self.stats = stats
         self.__x = 0
         self.__y = 0
         self.__xspd = 0
@@ -24,7 +25,12 @@ class Player:
         self.__cy = self.__y + self.__size/2
         self.__img = pygame.image.load('ufo.png')
         self.__eggs = []
+        self.coll = pygame.Rect(self.__x, self.__y, self.__size, self.__size)
 
+    def getX(self):
+        return self.__x
+    def getY(self):
+        return self.__y
     def getEggs(self):
         return self.__eggs
 
@@ -47,19 +53,23 @@ class Player:
         if self.__down:
             self.__yspd = min(self.__yspd + self.__accel, self.__speed)
         if self.__ccwise:
-            self.__rotate += 10
+            self.__rotate += 20
         if self.__cwise:
-            self.__rotate -= 10
+            self.__rotate -= 20
         if not (self.__up or self.__down) and self.__yspd != 0:
             self.__yspd -= self.__yspd / abs(self.__yspd)
         if not (self.__left or self.__right) and self.__xspd != 0:
             self.__xspd -= self.__xspd / abs(self.__xspd)
         self.__x = max(min(self.__x + self.__xspd, 1200-self.__size), 0)
         self.__y = max(min(self.__y + self.__yspd, 650-self.__size), 0)
+        self.coll = pygame.Rect(self.__x, self.__y, self.__size, self.__size)
         self.__cx = self.__x + self.__size / 2
         self.__cy = self.__y + self.__size / 2
 
-
+    def tick(self):
+        for i in self.stats.enemies:
+            if self.coll.colliderect(i.coll):
+                print("ouch")
 
     def register(self, event, mouse):
         if event.type == pygame.KEYDOWN:
@@ -126,5 +136,6 @@ class Player:
             self.__rotate = -90 - math.degrees(math.atan((my-self.__cy) / (mx-self.__cx)))
             if mx < self.__cx:
                 self.__rotate += 180
-        print(self.__rotate)
+
+
 

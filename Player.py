@@ -1,6 +1,7 @@
 import math
 
 import pygame
+from pygame.color import Color
 
 from Egg import Egg
 
@@ -26,6 +27,10 @@ class Player:
         self.__img = pygame.image.load('ufo.png')
         self.__eggs = []
         self.coll = pygame.Rect(self.__x, self.__y, self.__size, self.__size)
+        self.__hp = 10
+        self.__maxhp = 10
+        self.ammo = 10
+        self.maxammo = 10
 
     def getX(self):
         return self.__x
@@ -42,6 +47,28 @@ class Player:
     def draw(self, screen):
         tup = self.rot_center(self.__img, self.__rotate)
         screen.blit(tup[0], tup[1])
+        maxhpbar = pygame.Surface((200, 20))
+        maxhpbar.set_alpha(80)
+        maxhpbar.fill((0, 0, 0))
+        screen.blit(maxhpbar, (screen.get_width()/2 - 450, 20))
+        hpLbl = pygame.font.SysFont("Microsoft Yahei UI Light", 20).render(str(self.__hp) + " / " + str(self.__maxhp), 1, (255, 255, 255))
+        hpWord = pygame.font.SysFont("Microsoft Yahei UI Light", 30).render("HP:", 1, (255, 255, 255))
+        pygame.draw.rect(screen, (min(255, int((self.__maxhp - self.__hp) * 255 / (self.__maxhp - 1))), max(0, int(255 - (self.__maxhp - self.__hp) * 255 / (self.__maxhp - 1))), 0), (screen.get_width()/2-450, 20, max(0, 200 / self.__maxhp * self.__hp), 20))
+        screen.blit(hpLbl, ((screen.get_width() - hpLbl.get_width()) / 2 -350, 24))
+        screen.blit(hpWord, (screen.get_width() / 2 - 450 - hpWord.get_width() - 10, 20))
+
+        maxammobar = pygame.Surface((200, 20))
+        maxammobar.set_alpha(80)
+        maxammobar.fill((0, 0, 0))
+        screen.blit(maxammobar, (screen.get_width() / 2 - 100, 20))
+        ammoLbl = pygame.font.SysFont("Microsoft Yahei UI Light", 20).render(str(self.ammo) + " \ " + str(self.maxammo),
+                                                                           1, (0, 0, 0))
+        ammoWord = pygame.font.SysFont("Microsoft Yahei UI Light", 30).render("Ammo:", 1, (255, 255, 255))
+        pygame.draw.rect(screen, (255, 255, 255),
+                         (screen.get_width() / 2 - 100, 20, max(0, int(200 / self.maxammo * self.ammo)), 20))
+        screen.blit(ammoLbl, (screen.get_width() / 2 - 100 + maxammobar.get_width() / 2 - ammoLbl.get_width() / 2, 24))
+        screen.blit(ammoWord, (screen.get_width() / 2 - 100 - ammoWord.get_width() - 10, 20))
+
 
     def move(self):
         if self.__left:
@@ -66,10 +93,8 @@ class Player:
         self.__cx = self.__x + self.__size / 2
         self.__cy = self.__y + self.__size / 2
 
-    def tick(self):
-        for i in self.stats.enemies:
-            if self.coll.colliderect(i.coll):
-                print("ouch")
+    def takeDamage(self, dmg):
+        self.__hp = max(0, self.__hp - dmg)
 
     def register(self, event, mouse):
         if event.type == pygame.KEYDOWN:
@@ -87,10 +112,13 @@ class Player:
                     self.__ccwise = True
                 if key == pygame.K_RIGHT:
                     self.__cwise = True
-                if key == pygame.K_SPACE:
+                if key == pygame.K_SPACE and self.ammo > 0:
                     self.__eggs.append(Egg(self.__cx, self.__cy, self.__rotate, self))
-        if mouse and event.type == pygame.MOUSEBUTTONDOWN:
+                    self.ammo -= 1
+
+        if mouse and event.type == pygame.MOUSEBUTTONDOWN and self.ammo > 0:
             self.__eggs.append(Egg(self.__cx-7, self.__cy-7, self.__rotate, self))
+            self.ammo -= 1
 
         if event.type == pygame.KEYUP:
             key = event.key

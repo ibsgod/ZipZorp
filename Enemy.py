@@ -11,9 +11,16 @@ class Enemy:
         self.__player = player
         self.__size = 70
         self.__img = pygame.image.load('pig.png')
+        self.__hp = 3
+        self.__maxhp = 3
         self.coll = pygame.Rect(self.__x, self.__y, self.__size, self.__size)
 
     def draw(self, screen):
+        maxbar = pygame.Surface((50, 5))
+        maxbar.set_alpha(80)
+        maxbar.fill((0, 0, 0))
+        screen.blit(maxbar, (self.__x + (self.__size - maxbar.get_width()) / 2, self.__y - 15)), 1, (255, 255, 255)
+        pygame.draw.rect(screen, (min(255, int((self.__maxhp - self.__hp) * 255 / (self.__maxhp - 1))), max(0, int(255 - (self.__maxhp - self.__hp) * 255 / (self.__maxhp - 1))), 0), (self.__x + (self.__size - maxbar.get_width()) / 2, self.__y - 15, max(0, maxbar.get_width() / self.__maxhp * self.__hp), 5))
         screen.blit(self.__img, (int(self.__x), int(self.__y)))
 
     def tick(self):
@@ -23,10 +30,22 @@ class Enemy:
             self.__y += (self.__player.getY() - self.__y) / abs(self.__player.getY() - self.__y) * min(self.__speed, abs(self.__player.getY() - self.__y))
         self.coll = pygame.Rect(self.__x, self.__y, self.__size, self.__size)
         if self.coll.colliderect(self.__player.coll):
-            self.__player.stats.enemies.remove(self)
+            self.__player.takeDamage(1)
+            self.die()
             return
         for i in self.__player.getEggs()[:]:
             if self.coll.colliderect(i.coll):
                 self.__player.getEggs().remove(i)
-                self.__player.stats.enemies.remove(self)
+                self.__player.stats.score += 1
+                self.__hp -= 1
+                if self.__hp <= 0:
+                    self.die()
                 return
+
+    def die(self):
+        self.__player.stats.score += 1
+        r = random.randint(1, 3)
+        self.__player.stats.exp += r
+        expLbl = pygame.font.SysFont("Microsoft Yahei UI Light", 20).render("+" + str(r) + " exp", 1, (255, 255, 255))
+        self.__player.stats.expanims.append([expLbl, int(self.__x), int(self.__y), 30])
+        self.__player.stats.enemies.remove(self)

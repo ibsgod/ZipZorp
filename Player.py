@@ -6,20 +6,21 @@ from pygame.color import Color
 from Egg import Egg
 
 class Player:
-    def __init__(self, stats):
+    def __init__(self, stats, x=0, y=0):
         self.stats = stats
-        self.__x = 0
-        self.__y = 0
+        self.__x = x
+        self.__y = y
         self.__xspd = 0
         self.__yspd = 0
-        self.__accel = 5
-        self.__speed = 10
+        self.__accel = 3
+        self.speed = 9
         self.__left = False
         self.__right = False
         self.__up = False
         self.__down = False
         self.__cwise = False
         self.__ccwise = False
+        self.__cspd = 0
         self.__rotate = 0
         self.__size = 70
         self.__cx = self.__x + self.__size/2
@@ -27,10 +28,19 @@ class Player:
         self.__img = pygame.image.load('ufo.png')
         self.__eggs = []
         self.coll = pygame.Rect(self.__x, self.__y, self.__size, self.__size)
-        self.__hp = 10
-        self.__maxhp = 10
+        self.hp = 10
+        self.maxhp = 10
         self.ammo = 10
         self.maxammo = 10
+        self.score = 0
+        self.exp = 0
+        self.level = 1
+        self.gaintext = []
+        self.gold = 0
+        self.pts = 1
+        self.atk = 1
+        self.regen = 5
+        self.reload = 1
 
     def getX(self):
         return self.__x
@@ -51,9 +61,9 @@ class Player:
         maxhpbar.set_alpha(80)
         maxhpbar.fill((0, 0, 0))
         screen.blit(maxhpbar, (screen.get_width()/2 - 450, 20))
-        hpLbl = pygame.font.SysFont("Microsoft Yahei UI Light", 20).render(str(self.__hp) + " / " + str(self.__maxhp), 1, (255, 255, 255))
+        hpLbl = pygame.font.SysFont("Microsoft Yahei UI Light", 20).render(str(self.hp) + " / " + str(self.maxhp), 1, (255, 255, 255))
         hpWord = pygame.font.SysFont("Microsoft Yahei UI Light", 30).render("HP:", 1, (255, 255, 255))
-        pygame.draw.rect(screen, (min(255, int((self.__maxhp - self.__hp) * 255 / (self.__maxhp - 1))), max(0, int(255 - (self.__maxhp - self.__hp) * 255 / (self.__maxhp - 1))), 0), (screen.get_width()/2-450, 20, max(0, 200 / self.__maxhp * self.__hp), 20))
+        pygame.draw.rect(screen, (min(255, int((self.maxhp - self.hp) * 255 / (self.maxhp - 1))), max(0, int(255 - (self.maxhp - self.hp) * 255 / (self.maxhp - 1))), 0), (screen.get_width()/2-450, 20, max(0, 200 / self.maxhp * self.hp), 20))
         screen.blit(hpLbl, ((screen.get_width() - hpLbl.get_width()) / 2 -350, 24))
         screen.blit(hpWord, (screen.get_width() / 2 - 450 - hpWord.get_width() - 10, 20))
 
@@ -69,32 +79,48 @@ class Player:
         screen.blit(ammoLbl, (screen.get_width() / 2 - 100 + maxammobar.get_width() / 2 - ammoLbl.get_width() / 2, 24))
         screen.blit(ammoWord, (screen.get_width() / 2 - 100 - ammoWord.get_width() - 10, 20))
 
+        maxexpbar = pygame.Surface((200, 20))
+        maxexpbar.set_alpha(80)
+        maxexpbar.fill((0, 0, 0))
+        screen.blit(maxexpbar, (screen.get_width() / 2 + 250, 20))
+        expLbl = pygame.font.SysFont("Microsoft Yahei UI Light", 20).render(str(self.exp) + " \ 50",
+                                                                             1, (0, 0, 0))
+        expWord = pygame.font.SysFont("Microsoft Yahei UI Light", 30).render("Level " + str(self.level), 1, (255, 255, 255))
+        pygame.draw.rect(screen, (0, 255, 255),
+                         (screen.get_width() / 2 + 250, 20, min(max(0, int(200 / 50 * self.exp)), 200), 20))
+        screen.blit(expLbl, (screen.get_width() / 2 + 250 + maxexpbar.get_width() / 2 - expLbl.get_width() / 2, 24))
+        screen.blit(expWord, (screen.get_width() / 2 + 250 - expWord.get_width() - 10, 20))
+
 
     def move(self):
+        self.__accel = round(self.speed * 10 / 3) / 10
         if self.__left:
-            self.__xspd = max(self.__xspd - self.__accel, -self.__speed)
+            self.__xspd = max(self.__xspd - self.__accel, -self.speed)
         if self.__right:
-            self.__xspd = min(self.__xspd + self.__accel, self.__speed)
+            self.__xspd = min(self.__xspd + self.__accel, self.speed)
         if self.__up:
-            self.__yspd = max(self.__yspd - self.__accel, -self.__speed)
+            self.__yspd = max(self.__yspd - self.__accel, -self.speed)
         if self.__down:
-            self.__yspd = min(self.__yspd + self.__accel, self.__speed)
+            self.__yspd = min(self.__yspd + self.__accel, self.speed)
         if self.__ccwise:
-            self.__rotate += 20
+            self.__cspd = max(4, min(self.__cspd + 4, 20))
         if self.__cwise:
-            self.__rotate -= 20
+            self.__cspd = min(-4, max(self.__cspd - 4, -20))
         if not (self.__up or self.__down) and self.__yspd != 0:
             self.__yspd -= self.__yspd / abs(self.__yspd)
         if not (self.__left or self.__right) and self.__xspd != 0:
             self.__xspd -= self.__xspd / abs(self.__xspd)
+        if not (self.__cwise or self.__ccwise):
+            self.__cspd = 0
         self.__x = max(min(self.__x + self.__xspd, 1200-self.__size), 0)
         self.__y = max(min(self.__y + self.__yspd, 650-self.__size), 0)
+        self.__rotate += self.__cspd
         self.coll = pygame.Rect(self.__x, self.__y, self.__size, self.__size)
         self.__cx = self.__x + self.__size / 2
         self.__cy = self.__y + self.__size / 2
 
     def takeDamage(self, dmg):
-        self.__hp = max(0, self.__hp - dmg)
+        self.hp = max(0, self.hp - dmg)
 
     def register(self, event, mouse):
         if event.type == pygame.KEYDOWN:
@@ -164,6 +190,23 @@ class Player:
             self.__rotate = -90 - math.degrees(math.atan((my-self.__cy) / (mx-self.__cx)))
             if mx < self.__cx:
                 self.__rotate += 180
+
+    def gain(self, x, y, gold, exp):
+        if x is None:
+            x = self.__x
+            y = self.__y
+        self.gold += gold
+        self.exp += exp
+        if exp > 0:
+            expLbl = pygame.font.SysFont("Microsoft Yahei UI Light", 20).render("+" + str(exp) + " exp", 1, (255, 255, 255))
+            self.gaintext.append([expLbl, int(x), int(y), 30])
+        if gold > 0:
+            goldLbl = pygame.font.SysFont("Microsoft Yahei UI Light", 20).render("+" + str(gold) + " gold", 1, (220, 220, 0))
+            self.gaintext.append([goldLbl, int(x), int(y-20), 30])
+        if self.exp >= 50:
+            self.level += 1
+            self.exp -= 50
+            self.pts += 1
 
 
 

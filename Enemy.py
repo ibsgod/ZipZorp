@@ -2,6 +2,8 @@ import random
 
 import pygame
 
+from Bacon import Bacon
+
 
 class Enemy:
     def __init__(self, x, y, player):
@@ -36,16 +38,16 @@ class Enemy:
         for i in self.__player.getEggs()[:]:
             if self.coll.colliderect(i.coll):
                 self.__player.getEggs().remove(i)
-                self.__player.stats.score += 1
-                self.__hp -= 1
+                self.__hp -= self.__player.atk
                 if self.__hp <= 0:
                     self.die()
                 return
 
     def die(self):
-        self.__player.stats.score += 1
-        r = random.randint(1, 3)
-        self.__player.stats.exp += r
-        expLbl = pygame.font.SysFont("Microsoft Yahei UI Light", 20).render("+" + str(r) + " exp", 1, (255, 255, 255))
-        self.__player.stats.expanims.append([expLbl, int(self.__x), int(self.__y), 30])
+        self.__player.score += 1
+        r = random.randint(1, 10)
+        r1 = max(0, random.randint(0, 10) - 7)
+        if r1 >= 1:
+            self.__player.stats.food.append(Bacon(self.__player, self.__x, self.__y, r1))
+        self.__player.gain(int(self.__x), int(self.__y), 0, r)
         self.__player.stats.enemies.remove(self)

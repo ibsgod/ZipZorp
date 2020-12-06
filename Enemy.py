@@ -37,6 +37,8 @@ class Enemy:
             return
         for i in self.__player.getEggs()[:]:
             if self.coll.colliderect(i.coll):
+                if i.vamp:
+                    self.__player.hp = min(self.__player.maxhp, self.__player.hp + self.__player.atk / 4)
                 self.__player.getEggs().remove(i)
                 self.__hp -= self.__player.atk
                 if self.__hp <= 0:

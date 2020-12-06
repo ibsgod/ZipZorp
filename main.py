@@ -26,7 +26,7 @@ mouse = False
 mousePos = None
 buttDict = {}
 enemySpawnTimer = pygame.time.get_ticks()
-enemySpawnSpeed = 300
+enemySpawnSpeed = 1000
 reloadTimer = pygame.time.get_ticks()
 regenTimer = pygame.time.get_ticks()
 def play():

@@ -36,12 +36,14 @@ class Player:
         self.exp = 0
         self.level = 1
         self.gaintext = []
-        self.gold = 0
+        self.gold = 50
         self.pts = 1
         self.atk = 1
         self.regen = 5
         self.reload = 1
-
+        self.items = {}
+        self.items["vampeggs"] = False
+        self.items["eggpen"] = False
     def getX(self):
         return self.__x
     def getY(self):
@@ -139,11 +141,11 @@ class Player:
                 if key == pygame.K_RIGHT:
                     self.__cwise = True
                 if key == pygame.K_SPACE and self.ammo > 0:
-                    self.__eggs.append(Egg(self.__cx, self.__cy, self.__rotate, self))
+                    self.__eggs.append(Egg(self.__cx, self.__cy, self.__rotate, self, vamp=self.items["vampeggs"]))
                     self.ammo -= 1
 
         if mouse and event.type == pygame.MOUSEBUTTONDOWN and self.ammo > 0:
-            self.__eggs.append(Egg(self.__cx-7, self.__cy-7, self.__rotate, self))
+            self.__eggs.append(Egg(self.__cx-7, self.__cy-7, self.__rotate, self, vamp=self.items["vampeggs"]))
             self.ammo -= 1
 
         if event.type == pygame.KEYUP:

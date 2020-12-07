@@ -3,13 +3,13 @@ import sys
 
 from pygame.rect import Rect
 
-from Button import Button
-from Enemy import Enemy
-from Player import Player
+from goodstuff.Button import Button
+from goodstuff.Enemy import Enemy
+from goodstuff.Player import Player
 import os
 import pygame
 
-from Stats import Stats
+from goodstuff.Stats import Stats
 
 
 pygame.mixer.init()
@@ -58,8 +58,7 @@ def play():
             p.ammo += 1
             reloadTimer = pygame.time.get_ticks()
         if pygame.time.get_ticks() - regenTimer > p.regen * 1000:
-            if p.hp < p.maxhp:
-                p.hp += 1
+            p.hp = min(p.hp + 1, p.maxhp)
             regenTimer = pygame.time.get_ticks()
         if pygame.time.get_ticks() - enemySpawnTimer > enemySpawnSpeed:
             r = random.randint(0, 3)

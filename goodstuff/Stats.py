@@ -2,8 +2,8 @@ import sys
 
 import pygame
 
-from Button import Button
-from Item import Item
+from goodstuff.Button import Button
+from goodstuff.Item import Item
 
 
 class Stats:
@@ -23,7 +23,8 @@ class Stats:
         buttDict["back"] = Button(30, 550, 200, 70, screen, color=(180, 50, 0), label=pygame.font.SysFont("Microsoft Yahei UI Light", 45).render("Back", 1, (255, 255, 255)))
         itemDict = {}
         itemDict["vampeggs"] = Item(410, 70, 180, 200, screen, p.items["vampeggs"], 50, label=pygame.font.SysFont("Microsoft Yahei UI Light", 40).render("VampEggs", 1, (255, 255, 255)), description="Heal for 25% of egg damage", img="vampeggicon.png")
-        itemDict["eggpen"] = Item(600, 70, 180, 200, screen, p.items["eggpen"], 40, label=pygame.font.SysFont("Microsoft Yahei UI Light", 40).render("EggPen", 1, (255, 255, 255)), description="Eggs pierce through enemies", img="eggpenicon.png")
+        itemDict["eggpen"] = Item(600, 70, 180, 200, screen, p.items["eggpen"], 50, label=pygame.font.SysFont("Microsoft Yahei UI Light", 40).render("EggPen", 1, (255, 255, 255)), description="Eggs pierce through enemies", img="eggpenicon.png")
+        itemDict["doubegg"] = Item(790, 70, 180, 200, screen, p.items["doubegg"], 100, label=pygame.font.SysFont("Microsoft Yahei UI Light", 40).render("DoubEgg", 1, (255, 255, 255)), description="Shoot another egg out yo butt", img="doubeggicon.png")
         myFont = pygame.font.SysFont("Microsoft Yahei UI Light", 70)
         shopLbl = myFont.render("Shop", 1, (255, 255, 255))
         while True:
@@ -43,18 +44,17 @@ class Stats:
             skillLbl = myFont.render("Skill Points: " + str(p.pts), 1, (255, 255, 255))
             screen.blit(skillLbl, (10, 10))
             screen.blit(myFont.render("Gold: " + str(p.gold), 1, (255, 255, 255)), (10, 20 + skillLbl.get_height()))
-
             myFont = pygame.font.SysFont("Microsoft Yahei UI Light", 60)
             pygame.draw.rect(screen, (75, 75, 200), (0, 100, 400, 400))
             pygame.draw.rect(screen, (0, 0, 0), (0, 100, 400, 400), 10)
             statsLbl = myFont.render("Stats", 1, (255, 255, 255))
             screen.blit(statsLbl, (int(200 - statsLbl.get_width() / 2), 110))
             myFont = pygame.font.SysFont("Microsoft Yahei UI Light", 40)
-            screen.blit(myFont.render("Attack: " + str(p.atk) + " (+1)", 1, (255, 255, 255)), (10, 182))
-            screen.blit(myFont.render("Health: " + str(p.maxhp) + " (+4)", 1, (255, 255, 255)), (10, 230))
-            screen.blit(myFont.render("Regen: " + str(p.regen) + " (-0.5)", 1, (255, 255, 255)), (10, 278))
-            screen.blit(myFont.render("Speed: " + str(p.speed) + " (+3)", 1, (255, 255, 255)), (10, 326))
-            screen.blit(myFont.render("Reload: " + str(p.reload) + " (-0.1)", 1, (255, 255, 255)), (10, 374))
+            screen.blit(myFont.render("Attack: " + str(p.atk) + " (+0.5)", 1, (255, 255, 255)), (10, 182))
+            screen.blit(myFont.render("Health: " + str(p.maxhp) + " (+2)", 1, (255, 255, 255)), (10, 230))
+            screen.blit(myFont.render("Regen: " + str(p.regen) + " (-0.3)", 1, (255, 255, 255)), (10, 278))
+            screen.blit(myFont.render("Speed: " + str(p.speed) + " (+2)", 1, (255, 255, 255)), (10, 326))
+            screen.blit(myFont.render("Reload: " + str(p.reload) + " (-0.05)", 1, (255, 255, 255)), (10, 374))
 
             screen.blit(shopLbl, (800 - shopLbl.get_width()/2, 10))
             pygame.draw.rect(screen, (75, 75, 200), (400, 500, 800, 150))
@@ -64,33 +64,36 @@ class Stats:
                 val = buttDict[i].tick(mousePos, click)
                 if val:
                     if i == "reset":
-                        p.pts += p.atk - 1
+                        p.pts += (p.atk - 1) / 0.5
                         p.atk = 1
-                        p.pts += (p.maxhp - 10) / 4
+                        p.pts += (p.maxhp - 10) / 2
                         p.hp -= p.maxhp - 10
                         p.maxhp = 10
-                        p.pts += (5 - p.regen) * 2
+                        p.pts += (5 - p.regen) / 0.3
                         p.regen = 5
-                        p.pts += (p.speed - 9) / 3
+                        p.pts += (p.speed - 9) / 2
                         p.speed = 9
-                        p.pts += (1 - p.reload) * 10
+                        p.pts += (1 - p.reload) / 0.05
                         p.reload = 1
                         p.pts = int(round(p.pts))
                     elif i == "back":
                         return
                     elif p.pts > 0:
                         if i == "atk":
-                            p.atk += 1
+                            p.atk += 0.5
                         if i == "hp":
-                            p.hp += 4
-                            p.maxhp += 4
-                        if i == "regen":
-                            p.regen -= 0.5
+                            p.hp += 2
+                            p.maxhp += 2
+                        if i == "regen" and p.regen > 0.5:
+                            p.regen -= 0.3
+                            p.regen = round(p.regen * 10) / 10
+                        elif i == "regen":
+                            p.pts += 1
                         if i == "speed":
-                            p.speed += 3
+                            p.speed += 2
                         if i == "reload" and p.reload > 0.1:
-                            p.reload -= 0.1
-                            p.reload = round(p.reload*10)/10
+                            p.reload -= 0.05
+                            p.reload = round(p.reload*100)/100
                         elif i == "reload":
                             p.pts += 1
                         p.pts -= 1

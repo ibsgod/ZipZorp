@@ -3,7 +3,7 @@ import math
 import pygame
 from pygame.color import Color
 
-from Egg import Egg
+from goodstuff.Egg import Egg
 
 class Player:
     def __init__(self, stats, x=0, y=0):
@@ -21,7 +21,7 @@ class Player:
         self.__cwise = False
         self.__ccwise = False
         self.__cspd = 0
-        self.__rotate = 0
+        self.__rotate = 270
         self.__size = 70
         self.__cx = self.__x + self.__size/2
         self.__cy = self.__y + self.__size/2
@@ -36,14 +36,15 @@ class Player:
         self.exp = 0
         self.level = 1
         self.gaintext = []
-        self.gold = 50
-        self.pts = 1
+        self.gold = 500
+        self.pts = 100
         self.atk = 1
         self.regen = 5
         self.reload = 1
         self.items = {}
         self.items["vampeggs"] = False
         self.items["eggpen"] = False
+        self.items["doubegg"] = False
     def getX(self):
         return self.__x
     def getY(self):
@@ -57,7 +58,8 @@ class Player:
         return rotated_image, (new_rect[0] + self.__x, new_rect[1] + self.__y)
 
     def draw(self, screen):
-        tup = self.rot_center(self.__img, self.__rotate)
+        self.__rotate = self.__rotate % 360
+        tup = self.rot_center(pygame.transform.flip(self.__img, self.__rotate >= 180, False), self.__rotate)
         screen.blit(tup[0], tup[1])
         maxhpbar = pygame.Surface((200, 20))
         maxhpbar.set_alpha(80)
@@ -65,7 +67,7 @@ class Player:
         screen.blit(maxhpbar, (screen.get_width()/2 - 450, 20))
         hpLbl = pygame.font.SysFont("Microsoft Yahei UI Light", 20).render(str(self.hp) + " / " + str(self.maxhp), 1, (255, 255, 255))
         hpWord = pygame.font.SysFont("Microsoft Yahei UI Light", 30).render("HP:", 1, (255, 255, 255))
-        pygame.draw.rect(screen, (min(255, int((self.maxhp - self.hp) * 255 / (self.maxhp - 1))), max(0, int(255 - (self.maxhp - self.hp) * 255 / (self.maxhp - 1))), 0), (screen.get_width()/2-450, 20, max(0, 200 / self.maxhp * self.hp), 20))
+        pygame.draw.rect(screen, (min(255, int(abs(self.maxhp - self.hp) * 255 / (self.maxhp - 1))), max(0, int(255 - abs(self.maxhp - self.hp) * 255 / (self.maxhp - 1))), 0), (screen.get_width()/2-450, 20, max(0, 200 / self.maxhp * self.hp), 20))
         screen.blit(hpLbl, ((screen.get_width() - hpLbl.get_width()) / 2 -350, 24))
         screen.blit(hpWord, (screen.get_width() / 2 - 450 - hpWord.get_width() - 10, 20))
 
@@ -141,12 +143,18 @@ class Player:
                 if key == pygame.K_RIGHT:
                     self.__cwise = True
                 if key == pygame.K_SPACE and self.ammo > 0:
-                    self.__eggs.append(Egg(self.__cx, self.__cy, self.__rotate, self, vamp=self.items["vampeggs"]))
+                    self.__eggs.append(Egg(self.__cx-7, self.__cy-7, self.__rotate, self, vamp=self.items["vampeggs"]))
                     self.ammo -= 1
+                    if self.items["doubegg"]:
+                        self.__eggs.append(Egg(self.__cx-7, self.__cy-7, self.__rotate+180, self, vamp=self.items["vampeggs"]))
+                        self.ammo -= 1
 
         if mouse and event.type == pygame.MOUSEBUTTONDOWN and self.ammo > 0:
             self.__eggs.append(Egg(self.__cx-7, self.__cy-7, self.__rotate, self, vamp=self.items["vampeggs"]))
             self.ammo -= 1
+            if self.items["doubegg"]:
+                self.__eggs.append(Egg(self.__cx-7, self.__cy-7, self.__rotate + 180, self, vamp=self.items["vampeggs"]))
+                self.ammo -= 1
 
         if event.type == pygame.KEYUP:
             key = event.key

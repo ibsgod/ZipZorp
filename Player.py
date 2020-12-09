@@ -1,9 +1,10 @@
 import math
 
 import pygame
-from pygame.color import Color
 
-from goodstuff.Egg import Egg
+from Egg import Egg
+from ShieldEgg import ShieldEgg
+
 
 class Player:
     def __init__(self, stats, x=0, y=0):
@@ -22,12 +23,12 @@ class Player:
         self.__ccwise = False
         self.__cspd = 0
         self.__rotate = 270
-        self.__size = 70
-        self.__cx = self.__x + self.__size/2
-        self.__cy = self.__y + self.__size/2
+        self.size = 70
+        self.cx = self.__x + self.size/2
+        self.cy = self.__y + self.size/2
         self.__img = pygame.image.load('ufo.png')
         self.__eggs = []
-        self.coll = pygame.Rect(self.__x, self.__y, self.__size, self.__size)
+        self.coll = pygame.Rect(self.__x, self.__y, self.size, self.size)
         self.hp = 10
         self.maxhp = 10
         self.ammo = 10
@@ -36,21 +37,22 @@ class Player:
         self.exp = 0
         self.level = 1
         self.gaintext = []
-        self.gold = 500
+        self.gold = 5000
         self.pts = 100
         self.atk = 1
         self.regen = 5
         self.reload = 1
-        self.items = {}
-        self.items["vampeggs"] = False
-        self.items["eggpen"] = False
-        self.items["doubegg"] = False
+        self.shieldEggs = []
+        self.items = {"vampeggs": False, "eggpen": False, "doubegg": False, "eggsplit": False, "eggshield": False}
+
     def getX(self):
         return self.__x
     def getY(self):
         return self.__y
     def getEggs(self):
         return self.__eggs
+    def addEggs(self, egg):
+        self.__eggs.append(egg)
 
     def rot_center(self, image, angle):
         rotated_image = pygame.transform.rotate(image, angle)
@@ -116,12 +118,16 @@ class Player:
             self.__xspd -= self.__xspd / abs(self.__xspd)
         if not (self.__cwise or self.__ccwise):
             self.__cspd = 0
-        self.__x = max(min(self.__x + self.__xspd, 1200-self.__size), 0)
-        self.__y = max(min(self.__y + self.__yspd, 650-self.__size), 0)
+        self.__x = max(min(self.__x + self.__xspd, 1200-self.size), 0)
+        self.__y = max(min(self.__y + self.__yspd, 650-self.size), 0)
         self.__rotate += self.__cspd
-        self.coll = pygame.Rect(self.__x, self.__y, self.__size, self.__size)
-        self.__cx = self.__x + self.__size / 2
-        self.__cy = self.__y + self.__size / 2
+        self.coll = pygame.Rect(self.__x, self.__y, self.size, self.size)
+        self.cx = self.__x + self.size / 2
+        self.cy = self.__y + self.size / 2
+        if len(self.shieldEggs) == 0 and self.items["eggshield"]:
+            self.shieldEggs.append(ShieldEgg(self.cx - 7, self.cy - 50 - 7, 100, -1, self))
+            self.shieldEggs.append(ShieldEgg(self.cx - 7, self.cy + 50 - 7, 100, 1, self))
+
 
     def takeDamage(self, dmg):
         self.hp = max(0, self.hp - dmg)
@@ -143,18 +149,16 @@ class Player:
                 if key == pygame.K_RIGHT:
                     self.__cwise = True
                 if key == pygame.K_SPACE and self.ammo > 0:
-                    self.__eggs.append(Egg(self.__cx-7, self.__cy-7, self.__rotate, self, vamp=self.items["vampeggs"]))
+                    self.__eggs.append(Egg(self.cx-7, self.cy-7, self.__rotate, self, vamp=self.items["vampeggs"]))
                     self.ammo -= 1
                     if self.items["doubegg"]:
-                        self.__eggs.append(Egg(self.__cx-7, self.__cy-7, self.__rotate+180, self, vamp=self.items["vampeggs"]))
-                        self.ammo -= 1
+                        self.__eggs.append(Egg(self.cx-7, self.cy-7, self.__rotate+180, self, vamp=self.items["vampeggs"]))
 
         if mouse and event.type == pygame.MOUSEBUTTONDOWN and self.ammo > 0:
-            self.__eggs.append(Egg(self.__cx-7, self.__cy-7, self.__rotate, self, vamp=self.items["vampeggs"]))
+            self.__eggs.append(Egg(self.cx-7, self.cy-7, self.__rotate, self, vamp=self.items["vampeggs"]))
             self.ammo -= 1
             if self.items["doubegg"]:
-                self.__eggs.append(Egg(self.__cx-7, self.__cy-7, self.__rotate + 180, self, vamp=self.items["vampeggs"]))
-                self.ammo -= 1
+                self.__eggs.append(Egg(self.cx-7, self.cy-7, self.__rotate + 180, self, vamp=self.items["vampeggs"]))
 
         if event.type == pygame.KEYUP:
             key = event.key
@@ -196,9 +200,9 @@ class Player:
     def mouseSpin(self, mousePos):
         mx = mousePos[0]
         my = mousePos[1]
-        if mx-self.__cx != 0:
-            self.__rotate = -90 - math.degrees(math.atan((my-self.__cy) / (mx-self.__cx)))
-            if mx < self.__cx:
+        if mx-self.cx != 0:
+            self.__rotate = -90 - math.degrees(math.atan((my-self.cy) / (mx-self.cx)))
+            if mx < self.cx:
                 self.__rotate += 180
 
     def gain(self, x, y, gold, exp):

@@ -2,8 +2,8 @@ import sys
 
 import pygame
 
-from goodstuff.Button import Button
-from goodstuff.Item import Item
+from Button import Button
+from Item import Item
 
 
 class Stats:
@@ -25,6 +25,8 @@ class Stats:
         itemDict["vampeggs"] = Item(410, 70, 180, 200, screen, p.items["vampeggs"], 50, label=pygame.font.SysFont("Microsoft Yahei UI Light", 40).render("VampEggs", 1, (255, 255, 255)), description="Heal for 25% of egg damage", img="vampeggicon.png")
         itemDict["eggpen"] = Item(600, 70, 180, 200, screen, p.items["eggpen"], 50, label=pygame.font.SysFont("Microsoft Yahei UI Light", 40).render("EggPen", 1, (255, 255, 255)), description="Eggs pierce through enemies", img="eggpenicon.png")
         itemDict["doubegg"] = Item(790, 70, 180, 200, screen, p.items["doubegg"], 100, label=pygame.font.SysFont("Microsoft Yahei UI Light", 40).render("DoubEgg", 1, (255, 255, 255)), description="Shoot another egg out yo butt", img="doubeggicon.png")
+        itemDict["eggsplit"] = Item(980, 70, 180, 200, screen, p.items["eggsplit"], 200, label=pygame.font.SysFont("Microsoft Yahei UI Light", 40).render("EggSplit", 1, (255, 255, 255)), description="Eggs split into 4 upon collision", img="eggspliticon.png")
+        itemDict["eggshield"] = Item(410, 280, 180, 200, screen, p.items["eggshield"], 60, label=pygame.font.SysFont("Microsoft Yahei UI Light", 40).render("EggShield", 1, (255, 255, 255)), description="2 eggs permanently revolve the duck, dealing 3x ATK", img="eggshieldicon.png")
         myFont = pygame.font.SysFont("Microsoft Yahei UI Light", 70)
         shopLbl = myFont.render("Shop", 1, (255, 255, 255))
         while True:

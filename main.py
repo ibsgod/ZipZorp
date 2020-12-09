@@ -3,13 +3,13 @@ import sys
 
 from pygame.rect import Rect
 
-from goodstuff.Button import Button
-from goodstuff.Enemy import Enemy
-from goodstuff.Player import Player
+from Button import Button
+from Enemy import Enemy
+from Player import Player
 import os
 import pygame
 
-from goodstuff.Stats import Stats
+from Stats import Stats
 
 
 pygame.mixer.init()
@@ -25,10 +25,11 @@ click = False
 mouse = False
 mousePos = None
 buttDict = {}
-enemySpawnTimer = pygame.time.get_ticks()
+currentTime = pygame.time.get_ticks()
+enemySpawnTimer = currentTime
 enemySpawnSpeed = 1000
-reloadTimer = pygame.time.get_ticks()
-regenTimer = pygame.time.get_ticks()
+reloadTimer = currentTime
+regenTimer = currentTime
 def play():
     global mouse
     global mousePos
@@ -38,6 +39,7 @@ def play():
     while True:
         screen.fill((200, 30, 150))
         mousePos = pygame.mouse.get_pos()
+        currentTime = pygame.time.get_ticks()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 sys.exit()
@@ -45,6 +47,8 @@ def play():
                 pause()
                 break
             p.register(event, mouse)
+        for i in p.shieldEggs:
+            i.tick()
         p.move()
         for i in p.getEggs():
             i.tick()
@@ -54,13 +58,17 @@ def play():
             i.tick()
         if mouse:
             p.mouseSpin(mousePos)
-        if pygame.time.get_ticks() - reloadTimer > p.reload * 1000 and p.ammo < p.maxammo:
+        if currentTime - reloadTimer > p.reload * 1000 and p.ammo < p.maxammo:
             p.ammo += 1
-            reloadTimer = pygame.time.get_ticks()
-        if pygame.time.get_ticks() - regenTimer > p.regen * 1000:
+            reloadTimer = currentTime
+        if p.ammo == p.maxammo:
+            reloadTimer = currentTime
+        if p.hp == p.maxhp:
+            regenTimer = currentTime
+        if currentTime - regenTimer > p.regen * 1000:
             p.hp = min(p.hp + 1, p.maxhp)
-            regenTimer = pygame.time.get_ticks()
-        if pygame.time.get_ticks() - enemySpawnTimer > enemySpawnSpeed:
+            regenTimer = currentTime
+        if currentTime - enemySpawnTimer > enemySpawnSpeed:
             r = random.randint(0, 3)
             rx = None
             ry = None
@@ -77,12 +85,14 @@ def play():
                 rx = random.randint(0, 1200)
                 ry = 720
             stats.enemies.append(Enemy(rx, ry, p))
-            enemySpawnTimer = pygame.time.get_ticks()
+            enemySpawnTimer = currentTime
         for i in p.getEggs():
             i.draw(screen)
         for i in stats.enemies:
             i.draw(screen)
         for i in stats.food:
+            i.draw(screen)
+        for i in p.shieldEggs:
             i.draw(screen)
         p.draw(screen)
         for i in p.gaintext[:]:
@@ -121,6 +131,8 @@ def pause():
         for i in stats.enemies:
             i.draw(screen)
         for i in stats.food:
+            i.draw(screen)
+        for i in p.shieldEggs:
             i.draw(screen)
         p.draw(screen)
         pygame.draw.rect(screen, (200, 200, 200), (int(width / 2) - 300, int(height / 2) - 162, 600, 325))
